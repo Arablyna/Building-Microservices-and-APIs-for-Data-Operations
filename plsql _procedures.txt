@@ -1,0 +1,62 @@
+CREATE OR REPLACE PROCEDURE add_product (
+    p_product_code IN VARCHAR2,
+    p_name IN VARCHAR2,
+    p_quantity IN NUMBER
+) AS
+BEGIN
+    INSERT INTO products (product_code, name, quantity)
+    VALUES (p_product_code, p_name, p_quantity);
+    
+    COMMIT; -- Commit the transaction
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; -- Rollback the transaction if an error occurs
+        RAISE; -- Raise the exception to the caller
+END add_product;
+
+
+
+CREATE OR REPLACE PROCEDURE edit_product (
+    p_id IN NUMBER,
+    p_product_code IN VARCHAR2,
+    p_name IN VARCHAR2,
+    p_quantity IN NUMBER
+) AS
+BEGIN
+    UPDATE products
+    SET product_code = p_product_code,
+        name = p_name,
+        quantity = p_quantity
+    WHERE id = p_id;
+    
+    COMMIT; -- Commit the transaction
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; -- Rollback the transaction if an error occurs
+        RAISE; -- Raise the exception to the caller
+END edit_product;
+
+
+
+
+CREATE OR REPLACE PROCEDURE delete_product (
+    p_id IN NUMBER
+) AS
+BEGIN
+    DELETE FROM products
+    WHERE id = p_id;
+    
+    COMMIT; -- Commit the transaction
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; -- Rollback the transaction if an error occurs
+        RAISE; -- Raise the exception to the caller
+END delete_product;
+/
+CREATE OR REPLACE PROCEDURE get_all_products (
+    p_products OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_products FOR
+    SELECT * FROM products;
+END get_all_products;
