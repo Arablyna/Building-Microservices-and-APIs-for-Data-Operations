@@ -7,27 +7,62 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from .models import product
 from .forms import productform
 from django.db import connection
+import cx_Oracle
 
 
 # Create your views here.
 
 
 def home_view(request):
-    all_products = product.objects.order_by("id")
-   
-    paginator = Paginator(all_products,5,1)
-    pageNo = request.GET.get('page',1)
+    # Connect to the Oracle database
+    connection = cx_Oracle.connect(
+        user="system",
+        password="Oracle21c",
+        dsn="localhost:1521/ORCL"
+    )
+
+    with connection.cursor() as cursor:
+        # Call the stored procedure to get all products
+        products_cursor = cursor.var(cx_Oracle.CURSOR)
+        cursor.callproc('get_all_products', [products_cursor])
+
+        # Fetch the result set from the cursor
+        products = products_cursor.getvalue()
+
+        # Convert the fetched products into a list of dictionaries for easier manipulation in the template
+        products_list = []
+        if products:  # Check if products is not None
+            for product_data in products:
+                product_dict = {
+                    'id': product_data[0],
+                    'product_code': product_data[1],
+                    'name': product_data[2],
+                    'quantity': product_data[3],
+                    # Add more fields as needed
+                }
+                products_list.append(product_dict)
+
+    # Paginate the products
+    paginator = Paginator(products_list, 5, 1)
+    page_number = request.GET.get('page', 1)
     try:
-        products = paginator.get_page(pageNo)
+        products_page = paginator.page(page_number)
     except PageNotAnInteger:
-        products = paginator.page(1)
+        products_page = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+        products_page = paginator.page(paginator.num_pages)
 
+    # Prepare form
     form = productform()
-    context = {'products' : products, 'productform' : form, "productCount" : all_products.count() }
 
-    return render(request,'inventory.html',context)
+    # Prepare context
+    context = {
+        'products': products_page,
+        'productform': form,
+        'productCount': len(products_list),
+    }
+
+    return render(request, 'inventory.html', context)
 
 @require_POST
 def add_product(request):
