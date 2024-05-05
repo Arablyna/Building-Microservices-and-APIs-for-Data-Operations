@@ -8,6 +8,7 @@ from .models import product
 from .forms import productform
 from django.db import connection
 import cx_Oracle
+cx_Oracle.init_oracle_client(lib_dir=r"C:\Users\Microsoft\Downloads\instantclient-basic-windows.x64-21.13.0.0.0dbru\instantclient_21_13")
 
 
 # Create your views here.
@@ -31,13 +32,14 @@ def home_view(request):
 
         # Convert the fetched products into a list of dictionaries for easier manipulation in the template
         products_list = []
-        if products:  # Check if products is not None
+        if products:  
             for product_data in products:
                 product_dict = {
                     'id': product_data[0],
                     'product_code': product_data[1],
                     'name': product_data[2],
                     'quantity': product_data[3],
+                    'price': product_data[4],  # Assuming price is the fifth element
                     # Add more fields as needed
                 }
                 products_list.append(product_dict)
@@ -64,6 +66,7 @@ def home_view(request):
 
     return render(request, 'inventory.html', context)
 
+
 @require_POST
 def add_product(request):
     if request.method == 'POST':
@@ -73,10 +76,11 @@ def add_product(request):
             product_code = form.cleaned_data['product_code']
             name = form.cleaned_data['name']
             quantity = form.cleaned_data['quantity']
+            price = form.cleaned_data['price']  # Add this line to extract price
 
             # Call the stored procedure
             with connection.cursor() as cursor:
-                cursor.callproc('add_product', [product_code, name, quantity])
+                cursor.callproc('add_product', [product_code, name, quantity, price])  # Include price here
 
             messages.success(request, "Product created successfully!")
             return redirect('home')
@@ -87,6 +91,7 @@ def add_product(request):
 
     return render(request, 'add_product.html', {'form': form})
 
+
 @require_POST
 def edit_product(request, pk):
     item = product.objects.get(id=pk)
@@ -96,10 +101,11 @@ def edit_product(request, pk):
         product_code = form.cleaned_data['product_code']
         name = form.cleaned_data['name']
         quantity = form.cleaned_data['quantity']
+        price = form.cleaned_data['price']  # Added price extraction
 
         # Call the stored procedure to edit the product
         with connection.cursor() as cursor:
-            cursor.callproc('edit_product', [pk, product_code, name, quantity])
+            cursor.callproc('edit_product', [pk, product_code, name, quantity, price])  # Passed price parameter
 
         messages.success(request, "Product edited successfully!")
     else:
