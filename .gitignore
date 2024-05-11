@@ -1,1 +1,3 @@
 venv/
+oracledb/__pycache__
+mysite/__pycache__

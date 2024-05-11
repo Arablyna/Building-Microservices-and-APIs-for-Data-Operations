@@ -107,10 +107,11 @@ def add_product(request):
             product_code = form.cleaned_data['product_code']
             name = form.cleaned_data['name']
             quantity = form.cleaned_data['quantity']
+            price = form.cleaned_data['price']  # Add this line to extract price
 
             # Call the stored procedure
             with connection.cursor() as cursor:
-                cursor.callproc('add_product', [product_code, name, quantity])
+                cursor.callproc('add_product', [product_code, name, quantity, price])  # Include price here
 
             messages.success(request, "Product created successfully!")
             return redirect('home')
@@ -121,6 +122,7 @@ def add_product(request):
 
     return render(request, 'add_product.html', {'form': form})
 
+
 @require_POST
 def edit_product(request, pk):
     item = product.objects.get(id=pk)
@@ -130,10 +132,11 @@ def edit_product(request, pk):
         product_code = form.cleaned_data['product_code']
         name = form.cleaned_data['name']
         quantity = form.cleaned_data['quantity']
+        price = form.cleaned_data['price']  # Added price extraction
 
         # Call the stored procedure to edit the product
         with connection.cursor() as cursor:
-            cursor.callproc('edit_product', [pk, product_code, name, quantity])
+            cursor.callproc('edit_product', [pk, product_code, name, quantity, price])  # Passed price parameter
 
         messages.success(request, "Product edited successfully!")
     else:

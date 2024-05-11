@@ -86,3 +86,12 @@ BEGIN
     OPEN p_products FOR
     SELECT * FROM products;
 END get_all_products;
+
+
+create or replace NONEDITIONABLE PROCEDURE get_all_products (
+    p_products OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_products FOR
+    SELECT * FROM products;
+END get_all_products;
