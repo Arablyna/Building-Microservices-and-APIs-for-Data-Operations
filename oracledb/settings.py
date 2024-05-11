@@ -90,8 +90,8 @@ WSGI_APPLICATION = 'oracledb.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': 'localhost:1521/ORCL',
-        'USER': 'system',
+        'NAME': 'localhost:1521/product_pdb',
+        'USER': 'product_service',
         'PASSWORD': 'Oracle21c',
         'HOST': '',
         'PORT': ''

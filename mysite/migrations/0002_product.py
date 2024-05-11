@@ -6,21 +6,22 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    initial = True
-
     dependencies = [
+        ('mysite', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name='product',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, unique=True)),
+                ('product_code', models.CharField(max_length=5, unique=True)),
+                ('name', models.CharField(max_length=200)),
+                ('description', models.CharField(max_length=500)),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='mysite.category')),
             ],
             options={
-                'db_table': 'categories',
+                'db_table': 'product',
             },
         ),
-        
     ]

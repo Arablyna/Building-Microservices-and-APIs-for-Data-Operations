@@ -4,31 +4,100 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator 
 
-from .models import product
-from .forms import productform
+from .models import Category, product
+from .forms import ProductForm
 from django.db import connection
+import cx_Oracle
+cx_Oracle.init_oracle_client(lib_dir=r"C:\Users\Microsoft\Downloads\instantclient-basic-windows.x64-21.13.0.0.0dbru\instantclient_21_13")
 
 
-# Create your views here.
+from django.http import JsonResponse
 
+
+@require_POST
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            product_code = form.cleaned_data['product_code']
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            category = form.cleaned_data['category']
+            price = form.cleaned_data['price']
+
+            try:
+                with connection.cursor() as cursor:
+                    cursor.callproc('insert_product_and_send_message', [product_code, name, description, category.id, price])
+
+                messages.success(request, "Product created successfully!")
+                return redirect('home')
+            except Exception as e:
+                messages.error(request, "An error occurred while adding the product.")
+        else:
+            messages.error(request, "Form is not valid. Please correct the errors.")
+    else:
+        form = ProductForm()
+
+    return render(request, 'add_product.html', {'form': form})
 
 def home_view(request):
-    all_products = product.objects.order_by("id")
-   
-    paginator = Paginator(all_products,5,1)
-    pageNo = request.GET.get('page',1)
+    # Connect to the Oracle database
+    connection = cx_Oracle.connect(
+        user="product_service",
+        password="Oracle21c",
+        dsn="localhost:1521/product_pdb"
+    )
+
+    with connection.cursor() as cursor:
+        # Call the stored procedure to get all products
+        products_cursor = cursor.var(cx_Oracle.CURSOR)
+        cursor.callproc('get_all_products', [products_cursor])
+
+        # Fetch the result set from the cursor
+        products = products_cursor.getvalue()
+
+        # Print out the products to inspect the data structure
+        print(products)
+
+        # Convert the fetched products into a list of dictionaries for easier manipulation in the template
+        products_list = []
+        if products:  
+            for product_data in products:
+                product_dict = {
+                    'id': product_data[0],
+                    'product_code': product_data[1],
+                    'name': product_data[2],
+                    'description': product_data[3],
+                    'category_id': product_data[4],
+                    'price': product_data[5],
+                    'category_name': Category.objects.get(id=product_data[4]).name  # Fetching category name
+
+                }
+                products_list.append(product_dict)
+
+    # Paginate the products
+    paginator = Paginator(products_list, 5, 1)
+    page_number = request.GET.get('page', 1)
     try:
-        products = paginator.get_page(pageNo)
+        products_page = paginator.page(page_number)
     except PageNotAnInteger:
-        products = paginator.page(1)
+        products_page = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)
+        products_page = paginator.page(paginator.num_pages)
 
-    form = productform()
-    context = {'products' : products, 'productform' : form, "productCount" : all_products.count() }
+    # Prepare form
+    form = ProductForm()
 
-    return render(request,'inventory.html',context)
+    # Prepare context
+    context = {
+        'products': products_page,
+        'productform': form,
+        'productCount': len(products_list),
+    }
 
+    return render(request, 'inventory.html', context)
+
+"""
 @require_POST
 def add_product(request):
     if request.method == 'POST':
@@ -80,4 +149,4 @@ def delete_product(request, pk):
         cursor.callproc('delete_product', [pk])
 
     messages.success(request, "Product deleted successfully!")
-    return redirect('home')
+    return redirect('home')"""
