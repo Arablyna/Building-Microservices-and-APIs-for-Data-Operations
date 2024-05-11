@@ -41,3 +41,8 @@ Ensure you install `instantclient-basic-windows.x64-21.13.0.0.0dbru\instantclien
 
 ```python
 cx_Oracle.init_oracle_client(lib_dir=r"C:\Users\Microsoft\Downloads\instantclient-basic-windows.x64-21.13.0.0.0dbru\instantclient_21_13")
+
+## Running Microservices:
+
+- Run the product service on port `8000`.
+- Run the inventory service on port `8001`.
