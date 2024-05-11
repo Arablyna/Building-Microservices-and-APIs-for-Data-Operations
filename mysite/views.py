@@ -43,6 +43,7 @@ def add_product(request):
 def home_view(request):
     # Connect to the Oracle database
     connection = cx_Oracle.connect(
+
         user="product_service",
         password="Oracle21c",
         dsn="localhost:1521/product_pdb"

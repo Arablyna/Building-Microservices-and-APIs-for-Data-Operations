@@ -17,3 +17,4 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
         self.fields['category'].queryset = Category.objects.all()
+
