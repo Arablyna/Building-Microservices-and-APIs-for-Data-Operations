@@ -1,97 +1,23 @@
-
-CREATE OR REPLACE PROCEDURE insert_product_and_send_message (
-    p_product_code IN VARCHAR2,
-    p_name IN VARCHAR2,
-    p_description IN VARCHAR2,
-    p_category_id IN NUMBER,
-    p_price IN NUMBER
-) IS
-    v_product_message product_message_to_inventory_t;
-    v_category_name VARCHAR2(200);
+--get all products:
+create or replace PROCEDURE get_all_products (
+    p_products OUT SYS_REFCURSOR
+) AS
 BEGIN
-    -- Insert data into the product table
-    INSERT INTO product (product_code, name, description, category_id, price)
-    VALUES (p_product_code, p_name, p_description, p_category_id, p_price);
+    OPEN p_products FOR
+    SELECT * FROM PRODUCT_SERVICE.PRODUCT@LINK_TO_PRODUCTS;
+END get_all_products;
 
-    -- Retrieve the category name based on the category_id
-    SELECT name INTO v_category_name FROM categories WHERE id = p_category_id;
 
-    -- Construct the product message
-    v_product_message := product_message_to_inventory_t(
-        p_product_code,
-        p_name,
-        p_description,
-        category_t(p_category_id, v_category_name),
-        p_price
-    );
-
-    -- Send the message from Product Service to Inventory Service
-    product_to_inventory_p.send_message(
-        queue_name => 'product_inventory_queue',
-        product_content => v_product_message
-    );
-    
-    COMMIT;
+--get product quantity:
+CREATE OR REPLACE PROCEDURE get_product_quantity (
+    p_product_code IN VARCHAR2,
+    p_quantity OUT NUMBER
+) AS
+BEGIN
+    SELECT QUANTITY INTO p_quantity
+    FROM INVENTORY_SERVICE.PRODUCT_INVENTORY@LINK_TO_INVENTORY
+    WHERE PRODUCT_CODE = p_product_code;
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
-        DBMS_OUTPUT.PUT_LINE('Category not found for category_id: ' || p_category_id);
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        p_quantity := 0; -- Or handle the case when the product code is not found
 END;
-
-
-
-
-CREATE OR REPLACE PROCEDURE edit_product (
-    p_id IN NUMBER,
-    p_product_code IN VARCHAR2,
-    p_name IN VARCHAR2,
-    p_quantity IN NUMBER
-) AS
-BEGIN
-    UPDATE products
-    SET product_code = p_product_code,
-        name = p_name,
-        quantity = p_quantity
-    WHERE id = p_id;
-    
-    COMMIT; -- Commit the transaction
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK; -- Rollback the transaction if an error occurs
-        RAISE; -- Raise the exception to the caller
-END edit_product;
-
-
-
-
-CREATE OR REPLACE PROCEDURE delete_product (
-    p_id IN NUMBER
-) AS
-BEGIN
-    DELETE FROM products
-    WHERE id = p_id;
-    
-    COMMIT; -- Commit the transaction
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK; -- Rollback the transaction if an error occurs
-        RAISE; -- Raise the exception to the caller
-END delete_product;
-/
-CREATE OR REPLACE PROCEDURE get_all_products (
-    p_products OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_products FOR
-    SELECT * FROM products;
-END get_all_products;
-
-
-create or replace NONEDITIONABLE PROCEDURE get_all_products (
-    p_products OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_products FOR
-    SELECT * FROM products;
-END get_all_products;
