@@ -44,6 +44,7 @@ GRANT SELECT ON product_queue_table TO product_service;
 GRANT CREATE SESSION TO orders_service;
 GRANT CREATE DATABASE LINK TO orders_service;
 
+
 -- Granting Privileges to product_pdb
 ALTER SESSION SET CONTAINER = product_pdb;
 GRANT CREATE USER TO admin;

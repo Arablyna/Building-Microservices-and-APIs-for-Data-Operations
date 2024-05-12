@@ -1,3 +1,4 @@
+VARIABLE products_cursor REFCURSOR;
 -- Create a new user for the product service
 CREATE USER product_service IDENTIFIED BY Oracle21c;
 

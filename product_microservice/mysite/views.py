@@ -67,6 +67,7 @@ def home_view(request):
                 product_dict = {
                     'id': product_data[0],
                     'product_code': product_data[1],
+                    
                     'name': product_data[2],
                     'description': product_data[3],
                     'category_id': product_data[4],

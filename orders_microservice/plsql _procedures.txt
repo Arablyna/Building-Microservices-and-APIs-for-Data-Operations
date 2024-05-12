@@ -1,6 +1,4 @@
 
---add a new product 
-
 CREATE OR REPLACE PROCEDURE insert_product_and_send_message (
     p_product_code IN VARCHAR2,
     p_name IN VARCHAR2,
@@ -41,58 +39,37 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
 END;
 
---get all products
-CREATE OR REPLACE PROCEDURE get_all_products (
-    p_products OUT SYS_REFCURSOR
-) AS
-BEGIN
-    OPEN p_products FOR
-    SELECT * FROM products;
-END get_all_products;
-
-
---update price
-CREATE OR REPLACE PROCEDURE update_product_price (
-    p_product_code IN VARCHAR2,
-    p_new_price IN NUMBER
-) AS
-BEGIN
-    UPDATE product
-    SET price = p_new_price
-    WHERE product_code = p_product_code;
-    
-    COMMIT;
-END update_product_price;
 
 
 
---edit product
 CREATE OR REPLACE PROCEDURE edit_product (
+    p_id IN NUMBER,
     p_product_code IN VARCHAR2,
     p_name IN VARCHAR2,
-    p_description IN VARCHAR2,
-    p_category_id IN INTEGER,
-    p_price IN NUMBER
+    p_quantity IN NUMBER
 ) AS
 BEGIN
-    UPDATE product
-    SET name = p_name,
-        description = p_description,
-        category_id = p_category_id,
-        price = p_price
-    WHERE product_code = p_product_code;
+    UPDATE products
+    SET product_code = p_product_code,
+        name = p_name,
+        quantity = p_quantity
+    WHERE id = p_id;
     
-    COMMIT;
+    COMMIT; -- Commit the transaction
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; -- Rollback the transaction if an error occurs
+        RAISE; -- Raise the exception to the caller
 END edit_product;
 
 
 
---delete product
+
 CREATE OR REPLACE PROCEDURE delete_product (
     p_id IN NUMBER
 ) AS
 BEGIN
-    DELETE FROM product
+    DELETE FROM products
     WHERE id = p_id;
     
     COMMIT; -- Commit the transaction
@@ -102,3 +79,19 @@ EXCEPTION
         RAISE; -- Raise the exception to the caller
 END delete_product;
 /
+CREATE OR REPLACE PROCEDURE get_all_products (
+    p_products OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_products FOR
+    SELECT * FROM products;
+END get_all_products;
+
+
+create or replace NONEDITIONABLE PROCEDURE get_all_products (
+    p_products OUT SYS_REFCURSOR
+) AS
+BEGIN
+    OPEN p_products FOR
+    SELECT * FROM products;
+END get_all_products;

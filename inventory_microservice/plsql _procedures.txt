@@ -1,34 +1,25 @@
+--edit quantity:
+create or replace PROCEDURE edit_product_inventory (
+    p_product_code IN VARCHAR2,
+    p_quantity IN NUMBER
+) AS
+BEGIN
+    UPDATE product_inventory
+    SET quantity = p_quantity
+    WHERE product_code = p_product_code;
 
---a plsql procedure to SELECT * FROM product_inventory;
-CREATE OR REPLACE NONEDITIONABLE PROCEDURE get_all_product_inventory (
+    COMMIT; -- Commit the transaction
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; -- Rollback the transaction if an error occurs
+        RAISE; -- Raise the exception to the caller
+END edit_product_inventory;
+
+--get all product_inventory:
+create or replace NONEDITIONABLE PROCEDURE get_all_product_inventory (
     p_inventory OUT SYS_REFCURSOR
 ) AS
 BEGIN
     OPEN p_inventory FOR
     SELECT * FROM product_inventory;
 END get_all_product_inventory;
-
-
-
-CREATE OR REPLACE PROCEDURE edit_product (
-    p_id IN NUMBER,
-    p_product_code IN VARCHAR2,
-    p_name IN VARCHAR2,
-    p_quantity IN NUMBER
-) AS
-BEGIN
-    UPDATE products
-    SET product_code = p_product_code,
-        name = p_name,
-        quantity = p_quantity
-    WHERE id = p_id;
-    
-    COMMIT; -- Commit the transaction
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK; -- Rollback the transaction if an error occurs
-        RAISE; -- Raise the exception to the caller
-END edit_product;
-
-
-
